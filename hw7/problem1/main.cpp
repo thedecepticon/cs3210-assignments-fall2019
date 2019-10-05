@@ -7,6 +7,7 @@ struct engine
     enum class type { internal_combustion, electric, hybrid, pneumatic };
     engine( car&, type, int horsepower );
 
+	friend car;
 private:
     bool check() const { return horsepower_ > 100; }
 
