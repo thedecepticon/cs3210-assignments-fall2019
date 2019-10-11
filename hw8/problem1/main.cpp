@@ -6,7 +6,157 @@
 #include <cassert>
 
 // TODO: point and rectangle class definitions
+struct point {
+	//given ints
+	point(int x, int y) :x(x), y(y) {}
+	//copy constructor
+	point(point const& p1) :x(p1.x), y(p1.y) {}
+	//default
+	point() {}
+	//member fun overrides
+	point& operator-=(point const& p1) {
+		x -= p1.x;
+		y -= p1.y;
+		return *this;
+	}
+	point& operator+=(point const& p1) {
+		x += p1.x;
+		y += p1.y;
+		return *this;
+	}
+	point& operator*=(point const& p1) {
+		x *= p1.x;
+		y *= p1.y;
+		return *this;
+	}
+	point& operator/=(point const& p1) {
+		x /= p1.x;
+		y /= p1.y;
+		return *this;
+	}
 
+	int x = 0;
+	int y = 0;
+};
+
+//(point add/sub within rectangle demands this be here)
+//subtraction
+point operator-(point p1, point p2) {
+	return point(p1.x - p2.x, p1.y - p2.y);
+}
+//addition 
+point operator+(point p1, point p2) {
+	return point(p1.x + p2.x, p1.y + p2.y);
+}
+struct rectangle {
+	//constructors
+	//given points
+	rectangle(point p1, point p2) :top_left(p1), bottom_right(p2) {}
+	//give a single point
+	rectangle(point p1) :top_left(p1), bottom_right(p1) {}
+	//given ints for points
+	rectangle(int w, int x, int y, int z) : top_left(w, x), bottom_right(y, z) {}
+	//given a rectangle (copy constructor)
+	rectangle(rectangle const& r1) :top_left(r1.top_left), bottom_right(r1.bottom_right) {}
+	//default
+	rectangle() {}
+	//member functions
+	rectangle& operator+=(point const& p1) {
+		top_left += p1;
+		bottom_right += p1;
+		return *this;
+	}
+	rectangle& operator-=(point const& p1) {
+		top_left -= p1;
+		bottom_right -= p1;
+		return *this;
+	}
+	rectangle& operator*=(point const& p1) {
+		top_left *= p1;
+		bottom_right *= p1;
+		return *this;
+	}
+	rectangle& operator/=(point const& p1) {
+		top_left /= p1;
+		bottom_right /= p1;
+		return *this;
+	}
+	point top_right() {
+		return point(bottom_right.x, top_left.y);
+	}
+	point bottom_left() {
+		return point(top_left.x, bottom_right.y);
+	}
+	int top() {
+		return top_left.y;
+	}
+	int left() {
+		return top_left.x;
+	}
+	int right() {
+		return bottom_right.x;
+	}
+	int bottom() {
+		return bottom_right.y;
+	}
+	int width() {
+		return bottom_right.x - top_left.x;
+	}
+	int height() {
+		//return top_left.y - bottom_right.y;
+		return bottom_right.y - top_left.y;
+	}
+	point extent() {
+		//returns size of rectangle (width, height)
+		return point(bottom_right.x - top_left.x, bottom_right.y - top_left.y);
+	}
+	void extent(point p1) {
+		//resize rectangle
+		bottom_right = top_left + p1;
+	}
+	rectangle& inflate(point p1) {
+		top_left -= p1;
+		bottom_right += p1;
+		return *this;
+	}
+	rectangle& inflate(int i) {
+		top_left.x -= i;
+		top_left.y -= i;
+		bottom_right.x += i;
+		bottom_right.y += i;
+		return *this;
+	}
+	rectangle& deflate(point p1) {
+		top_left += p1;
+		bottom_right -= p1;
+		return *this;
+	}
+	rectangle& deflate(int i) {
+		top_left.x += i;
+		top_left.y += i;
+		bottom_right.x -= i;
+		bottom_right.y -= i;
+		return *this;
+	}
+	rectangle& width(int i) {
+		bottom_right.x = top_left.x + i;
+		return *this;
+	}
+	rectangle& height(int i) {
+		bottom_right.y = top_left.y + i;
+		return *this;
+	}
+	bool contains(const point& p1) const {
+		return p1.y >= top_left.y && p1.y < bottom_right.y && p1.x >= top_left.x && p1.x < bottom_right.x;
+	}
+	point top_left;
+	point bottom_right;
+};
+
+//equality
+bool operator==(const point& p1, const point& p2) {
+	return p1.x == p2.x && p1.y == p2.y;
+}
 class chess_board;
 
 class chess_piece
@@ -79,6 +229,13 @@ public:
     {}
 
     // TODO: override chess_piece's default behavior to make the tests pass
+	std::string name() const override{ assert(true); return "rook"; }
+	bool is_valid_move(point const& p1) const override {
+		point p2 = position();
+		//rook moves on x or y axis not both at once and position must be on the board
+		return (p1.y - p2.y == 0 || p1.x - p2.x == 0) && chess_piece::is_valid_move(p1);
+	}
+	std::string short_name() const override { assert(true); return "R"; }
 };
 
 
@@ -90,6 +247,13 @@ public:
     {}
 
     // TODO: override chess_piece's default behavior to make the tests pass
+	std::string name() const override { assert(true); return "bishop"; }
+	bool is_valid_move(point const& p1) const override {
+		point p2 = position();
+		//Since a bishop can only move diagonals the deltaX and deltaY must be equal. and position must be on the board
+		return std::abs(p1.x - p2.x) == std::abs(p1.y - p2.y) && chess_piece::is_valid_move(p1);
+	}
+	std::string short_name() const override { assert(true); return "B"; }
 };
 
 
